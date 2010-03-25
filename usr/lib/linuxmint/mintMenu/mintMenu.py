@@ -42,6 +42,7 @@ gettext.install("mintmenu", "/usr/share/linuxmint/locale")
 
 NAME = _("Menu")
 PATH = os.path.abspath( os.path.dirname( sys.argv[0] ) )
+
 ICON = "/usr/lib/linuxmint/mintMenu/mintMenu.png"
 
 sys.path.append( os.path.join( PATH , "plugins") )
@@ -60,7 +61,7 @@ class MainWindow( object ):
 
 	def __init__( self, toggleButton ):
 
-		self.path = os.path.abspath( os.path.dirname( sys.argv[0] ) )
+		self.path = PATH
 		sys.path.append( os.path.join( self.path, "plugins") )
 
 		self.icon = ICON
@@ -100,6 +101,7 @@ class MainWindow( object ):
 
 		self.getSetGconfEntries()
 		self.SetupMintMenuBorder()
+		self.SetupMintMenuOpacity()
 
 		self.tooltips = gtk.Tooltips()
 		if self.globalEnableTooltips and self.enableTooltips:
@@ -113,6 +115,7 @@ class MainWindow( object ):
 		self.gconftheme.notifyAdd( "gtk_theme", self.RegenPlugins )
 		
 		self.gconf.notifyAdd( "show_side_pane", self.toggleShowSidepane )
+		self.gconf.notifyAdd( "start_with_favorites", self.toggleStartWithFavorites )
 		self.gconf.notifyAdd( "/apps/panel/global/tooltips_enabled", self.toggleTooltipsEnabled )
 		self.gconf.notifyAdd( "tooltips_enabled", self.toggleTooltipsEnabled )
 
@@ -121,6 +124,7 @@ class MainWindow( object ):
 		self.gconf.notifyAdd( "custom_heading_color", self.toggleCustomHeadingColor )
 		self.gconf.notifyAdd( "custom_color", self.toggleCustomBackgroundColor )
 		self.gconf.notifyAdd( "border_width", self.toggleBorderWidth )
+		self.gconf.notifyAdd( "opacity", self.toggleOpacity )
 		
 	def quit_cb (self):
  		gtk.main_quit()
@@ -143,6 +147,9 @@ class MainWindow( object ):
 		else:
 			self.tooltips.disable()
 
+	def toggleStartWithFavorites( self, client, connection_id, entry, args ):
+		self.startWithFavorites = entry.get_value().get_bool()
+
 	def toggleShowSidepane( self, client, connection_id, entry, args ):
 		self.sidepanevisible = entry.get_value().get_bool()
 		if self.sidepanevisible == False and self.pinmenu == False:
@@ -153,6 +160,10 @@ class MainWindow( object ):
 	def toggleBorderWidth( self, client, connection_id, entry, args ):
 		self.borderwidth = entry.get_value().get_int()
 		self.SetupMintMenuBorder()
+
+	def toggleOpacity( self, client, connection_id, entry, args ):
+		self.opacity = entry.get_value().get_int()
+		self.SetupMintMenuOpacity()
 
 	def toggleUseCustomColor( self, client, connection_id, entry, args ):
 		self.usecustomcolor = entry.get_value().get_bool()
@@ -184,11 +195,13 @@ class MainWindow( object ):
 		self.custombordercolor   = self.gconf.get( "color", "custom_border_color", "#001155" )
 		
 		self.borderwidth          = self.gconf.get( "int", "border_width", 1 )
+		self.opacity          	  = self.gconf.get( "int", "opacity", 100 )
 		self.offset               = self.gconf.get( "int", "mintMenu_offset", 0 )
 		self.pinmenu              = self.gconf.get( "bool", "pin_menu", False )
 		self.enableTooltips       = self.gconf.get( "bool", "tooltips_enabled", True )
 		self.globalEnableTooltips = self.gconf.get( "bool", "/apps/panel/global/tooltips_enabled", True )
 		self.sidepanevisible      = self.gconf.get( "bool", "show_side_pane", False )
+		self.startWithFavorites   = self.gconf.get( "bool", "start_with_favorites", False )
 
 
 	def PinMenu(self, *args, **kargs):
@@ -216,6 +229,11 @@ class MainWindow( object ):
 		else:
 			self.sidepane.show()
 
+	def SetupMintMenuOpacity( self ):
+		print "Opacity is: " + str(self.opacity)
+		opacity = float(self.opacity) / float(100)
+		print "Setting opacity to: " + str(opacity)
+		self.window.set_opacity(opacity)
 
 	def PopulatePlugins( self ):
 		self.panesToColor = [ ]
@@ -478,8 +496,10 @@ class MainWindow( object ):
 
 	def show( self ):
 		self.window.present()
-
+		
 		if ( "applications" in self.plugins ) and ( hasattr( self.plugins["applications"], "focusSearchEntry" ) ):
+			if (self.startWithFavorites):
+				self.plugins["applications"].changeTab(0)
 			self.plugins["applications"].focusSearchEntry()
 
 	def grab( self ):
@@ -633,13 +653,13 @@ class MenuWin( object ):
 		# if we have a vertical panel
 		elif self.applet.get_orient() == gnomeapplet.ORIENT_LEFT:
 			self.button_box = gtk.VBox()
-			self.systemlabel.set_angle( 90 )
+			self.systemlabel.set_angle( 270 )
 			self.button_box.pack_start( self.systemlabel )
 			self.button_box.pack_start( self.button_icon )
 			self.button_icon.set_padding( 5, 0 )
 		elif self.applet.get_orient() == gnomeapplet.ORIENT_RIGHT:
 			self.button_box = gtk.VBox()
-			self.systemlabel.set_angle( 270 )
+			self.systemlabel.set_angle( 90 )
 			self.button_box.pack_start( self.button_icon )
 			self.button_box.pack_start( self.systemlabel )
 			self.button_icon.set_padding( 0, 5 )
@@ -691,12 +711,12 @@ class MenuWin( object ):
 			self.button_icon.set_padding( 5, 0 )
 		elif self.applet.get_orient() == gnomeapplet.ORIENT_LEFT:
 			tmpbox = gtk.VBox()
-			self.systemlabel.set_angle( 90 )
+			self.systemlabel.set_angle( 270 )
 			self.button_box.reorder_child( self.button_icon, 1 )
 			self.button_icon.set_padding( 0, 5 )
 		elif self.applet.get_orient() == gnomeapplet.ORIENT_RIGHT:
 			tmpbox = gtk.VBox()
-			self.systemlabel.set_angle( 270 )
+			self.systemlabel.set_angle( 90 )
 			self.button_box.reorder_child( self.button_icon, 0 )
 			self.button_icon.set_padding( 0, 5 )
 

@@ -42,6 +42,7 @@ class mintMenuConfig( object ):
 		self.mainWindow.set_title(_("Menu preferences"))
 		self.mainWindow.set_icon_from_file("/usr/lib/linuxmint/mintMenu/icon.svg")
 
+		wTree.get_widget("startWithFavorites").set_label(_("Always start with favorites pane"))
 		wTree.get_widget("showSidepane").set_label(_("Show sidepane"))
 		wTree.get_widget("showButtonIcon").set_label(_("Show button icon"))
 		wTree.get_widget("useCustomColors").set_label(_("Use custom colors"))
@@ -54,6 +55,10 @@ class mintMenuConfig( object ):
 
 		wTree.get_widget("label11").set_text(_("Border width:"))
 		wTree.get_widget("label2").set_text(_("pixels"))
+
+		wTree.get_widget("label8").set_text(_("Opacity:"))
+		wTree.get_widget("label9").set_text("%")
+
 		wTree.get_widget("buttonTextLabel").set_text(_("Button text:"))
 		wTree.get_widget("label1").set_text(_("Options"))
 		wTree.get_widget("label23").set_text(_("Applications"))
@@ -105,6 +110,7 @@ class mintMenuConfig( object ):
 
 		wTree.get_widget("hotkey_label").set_text(_("Keyboard shortcut:"))
 
+		self.startWithFavorites = wTree.get_widget( "startWithFavorites" )
 		self.showSidepane = wTree.get_widget( "showSidepane" )
 		self.showAppComments = wTree.get_widget( "showAppComments" )
 		self.showCategoryIcons = wTree.get_widget( "showCategoryIcons" )
@@ -117,6 +123,7 @@ class mintMenuConfig( object ):
 		self.favIconSize = wTree.get_widget( "favIconSize" )
 		self.favCols = wTree.get_widget( "numFavCols" )
 		self.borderWidth = wTree.get_widget( "borderWidth" )
+		self.opacity = wTree.get_widget( "opacity" )
 		self.useCustomColors = wTree.get_widget( "useCustomColors" )
 		self.backgroundColor = wTree.get_widget( "backgroundColor" )
 		self.borderColor = wTree.get_widget( "borderColor" )
@@ -168,6 +175,7 @@ class mintMenuConfig( object ):
 		
 		self.useCustomColors.connect( "toggled", self.toggleUseCustomColors )
 		
+		self.bindGconfValueToWidget( self.gconf, "bool", "start_with_favorites", self.startWithFavorites, "toggled", self.startWithFavorites.set_active, self.startWithFavorites.get_active )
 		self.bindGconfValueToWidget( self.gconf, "bool", "show_side_pane", self.showSidepane, "toggled", self.showSidepane.set_active, self.showSidepane.get_active )
 		self.bindGconfValueToWidget( self.gconfApplications, "bool", "show_application_comments", self.showAppComments, "toggled", self.showAppComments.set_active, self.showAppComments.get_active )
 		self.bindGconfValueToWidget( self.gconfApplications, "bool", "show_category_icons", self.showCategoryIcons, "toggled", self.showCategoryIcons.set_active, self.showCategoryIcons.get_active )
@@ -181,6 +189,7 @@ class mintMenuConfig( object ):
 		self.bindGconfValueToWidget( self.gconfApplications, "int", "fav_cols", self.favCols, "value-changed", self.favCols.set_value, self.favCols.get_value )
 
 		self.bindGconfValueToWidget( self.gconf, "int", "border_width", self.borderWidth, "value-changed", self.borderWidth.set_value, self.borderWidth.get_value_as_int )
+		self.bindGconfValueToWidget( self.gconf, "int", "opacity", self.opacity, "value-changed", self.opacity.set_value, self.opacity.get_value_as_int )
 		self.bindGconfValueToWidget( self.gconf, "bool", "use_custom_color", self.useCustomColors, "toggled", self.useCustomColors.set_active, self.useCustomColors.get_active )
 		self.bindGconfValueToWidget( self.gconf, "color", "custom_color", self.backgroundColor, "color-set", self.backgroundColor.set_color, self.getBackgroundColor )
 		self.bindGconfValueToWidget( self.gconf, "color", "custom_heading_color", self.headingColor, "color-set", self.headingColor.set_color, self.getHeadingColor )
